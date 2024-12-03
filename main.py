@@ -1,74 +1,87 @@
-from enum import Enum
-import random
+#!/usr/bin/env python3
 
+from enum import Enum
+from random import randint
 
 class Shape(Enum):
-    ROCK = 'rock'
-    PAPER = 'paper'
-    SCISSORS = 'scissors'
+    ROCK = 1
+    PAPER = 2
+    SCISSORS = 3
 
 class Player:
-    def __init__(self):
+  def __init__(self, paramName: str = "Computer"):
         self.score = 0
-        self.shapes = [Shape.ROCK.name, Shape.PAPER.name, Shape.SCISSORS.name]
-        self.name = "Player"
-    
-    def choose(self):
-        while True:
-            user_input = input("Please enter your choice (rock, paper, scissors): ").upper()
-            if (user_input in self.shapes):
-                print(f"User chose: {user_input}")
-                return user_input
-            print("Invalid option. Please try again (rock, paper, scissors): ")
+        self.name = paramName
+        self.choice = 0
 
-class Computer:
-    def __init__(self):
-        self.score = 0
-        self.shapes = [Shape.ROCK.name, Shape.PAPER.name, Shape.SCISSORS.name]
-        self.name = "Computer"
+  def choose(self):
+        if self.name == "Computer":
+          # between 1-3 !
+          self.choice = randint(1, 3)
+        else:
+          while True:
+              self.choice = int( input(f"1 - {Shape(1).name}\n2 - {Shape(2).name}\n3 - {Shape(3).name}\n\nPlease enter your choice: "), 10 )
+              if self.choice in range(1, 4):
+                break
+              else:
+                print("Invalid option. Please try again (rock, paper, scissors): ")
 
-    def choose(self):
-        choice = random.choice(self.shapes)
-        print(f"Computer chose: {choice}")
-        return choice
+  def setScore(self, paramAddPoint: int):
+        self.score += paramAddPoint
+
+  def getScore(self):
+        return self.score
 
 class Game:
-    def __init__(self):
+  def __init__(self, paramPlayername: str = "Player"):
         self.max_round = 3
-        self.round = 0
-        self.computer = Computer()
-        self.player = Player()
-    
-    def play(self):
-        while (self.round < self.max_round):
-            player_choice = self.player.choose()
-            computer_choice = self.computer.choose()
-            self.adjust_score(computer_choice, player_choice)
-            self.display_scores()
-        winner = self.determine_winner()
-        print(f"{winner} WON!")
+        self.round = 1
+        self.computer = Player()
+        self.player = Player(paramPlayername)
 
-    def adjust_score(self,computer_choice, player_choice):
+  def nextRound(self):
+        self.round += 1
+
+  def play(self):
+        while (self.round <= self.max_round):
+            self.display_round()
+            self.player.choose()
+            self.computer.choose()
+            self.adjust_score()
+            self.display_scores()
+
+  def adjust_score(self):
         # rock > scissors
         # paper > rock
         # scissors > paper
-        if (computer_choice == player_choice):
-            return
-        if ((computer_choice == Shape.ROCK.name and player_choice == Shape.SCISSORS.name) or \
-            (computer_choice == Shape.PAPER.name and player_choice == Shape.ROCK.name) or \
-            (computer_choice == Shape.SCISSORS.name and player_choice == Shape.PAPER.name)):
-            self.computer.score += 1
-        else:
-            self.player.score += 1
-        self.round += 1
+        computerChoice = self.computer.choice
+        playerChoice = self.player.choice
 
-    def determine_winner(self):
+        if (computerChoice == playerChoice):
+            return
+
+        if ((computerChoice == Shape.ROCK.value and playerChoice == Shape.SCISSORS.value) or \
+            (computerChoice == Shape.PAPER.value and playerChoice == Shape.ROCK.value) or \
+            (computerChoice == Shape.SCISSORS.value and playerChoice == Shape.PAPER.value)):
+            self.computer.setScore(1)
+        else:
+            self.player.setScore(1)
+        self.nextRound()
+
+  def determine_winner(self):
         return self.computer.name if self.computer.score > self.player.score else self.player.name
-    
-    def display_scores(self):
-        print(f"{self.player.name} score: {self.player.score}")
-        print(f"{self.computer.name} score: {self.computer.score}")
+
+  def display_round(self):
+        print(f"\n=== Round {self.round} ===")
+
+  def display_scores(self):
+        print(f"\n[{self.player.name} ({self.player.getScore()})] {Shape(self.player.choice).name} --VS-- {Shape(self.computer.choice).name} [Computer ({self.computer.getScore()})]")
 
 if __name__ == "__main__":
-    game = Game()
+    playername = input("Enter playername: ")
+    if len(playername) > 0:
+      game = Game(playername)
+    else:
+      game = Game()
     game.play()
+    print(f"\n{game.determine_winner()} WON!")
